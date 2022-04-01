@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>HTML5 Canvas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <canvas id="draw" width="800" height="800"></canvas>
+  <script>
+    const canvas = document.querySelector('#draw');
+
+    // 并非直接在画布元素上作画，而是在其当前context上，是当前位置的一小块区域
+    // 获取canvas的上下文,2d是context type
+    const ctx = canvas.getContext('2d')
+
+    // resize canvas 将画布设置为与窗口一样大
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // 设置每一笔触的颜色、两端形状、宽度
+    ctx.strokeStyle = "#BADA55";
+    ctx.lineCap = 'round'; // 设置线条末端样式
+    ctx.lineJoin = 'round'; // 设置线条与线条间接合处的样式
+    ctx.lineWidth = 100; // 设置线条宽度,0会被忽略
+    // ctx.globalCompositeOperation = 'xor';
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let hue = 0;
+    let direction = true;// 决定lineWidth增加还是减小
+
+    function draw(e) {
+      if (!isDrawing) return; // stop the function when not moused down
+      // console.log(e);
+      ctx.strokeStyle = `hsl(${hue},100%,50%)`;
+      // 新建路径
+      ctx.beginPath();
+      // 将笔触移动到起始位置
+      ctx.moveTo(lastX, lastY);
+      // 绘制一条从当前位置到鼠标所在处的直线
+      ctx.lineTo(e.offsetX, e.offsetY);
+      // 通过线条来绘制图形轮廓
+      ctx.stroke();
+      // 将下次的起点设为这次的终点
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+      // 使颜色渐变
+      hue++;
+
+      // 让lineWidth从1增加至100，再从100降至1，反复
+      if (ctx.lineWidth >= 100 || ctx.lineWidth <= 1) direction = !direction;
+      if (direction) ctx.lineWidth++;
+      else ctx.lineWidth--;
+
+
+      console.log(ctx.lineWidth);
+    }
+    canvas.addEventListener('mousemove', draw);
+    // 仅在鼠标按下且位于画布范围内时才作画
+    // 为什么不只添加一个事件监听 mousedown时调用draw? 
+    // 因为mousedown事件只发生一次，我们需要在mousedown后的每次mousemove都调用draw
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      // 将起点更新为鼠标所在处
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+
+    });
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    // 监听mouseout的目的是使当鼠标一直出于按下的状态，从画布离开又回来的时候不要继续作画
+    canvas.addEventListener('mouseout', () => isDrawing = false);
+  </script>
+</body>
+
+</html>
